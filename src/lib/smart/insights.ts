@@ -1,8 +1,10 @@
 import { getCategory } from '../categories'
 import { addMonths, fromKey, monthKey, monthOf } from '../dates'
 import { moneyShort } from '../format'
+
+const monthLong = new Intl.DateTimeFormat('fr-FR', { month: 'long' })
 import type { Transaction } from '../types'
-import { normalize } from './normalize'
+import { fixedMatcher } from './fixed'
 
 export interface Insight {
   id: string
@@ -37,12 +39,14 @@ const WEEKDAYS = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi',
  * se font « à la même date » du mois précédent pour rester justes.
  */
 export function generateInsights(transactions: Transaction[], month: string, today = new Date(), fixedLabels: string[] = []): Insight[] {
-  const fixed = new Set(fixedLabels.map(normalize))
+  // les charges fixes (loyer, abonnements déclarés…) ne sont pas « pilotables » : on les écarte des comparaisons
+  const isFixed = fixedMatcher(fixedLabels.map((label) => ({ label, type: 'expense' as const })))
   const out: Insight[] = []
   const isCurrent = month === monthKey(today)
   const cutoffDay = isCurrent ? today.getDate() : 31
   const prev = addMonths(month, -1)
-  const exp = transactions.filter((t) => t.type === 'expense')
+  const prevName = isCurrent ? 'le mois dernier' : `en ${monthLong.format(fromKey(prev))}`
+  const exp = transactions.filter((t) => t.type === 'expense' && !isFixed(t))
   const upTo = (m: string) => exp.filter((t) => monthOf(t.date) === m && Number(t.date.slice(8)) <= cutoffDay)
   const sum = (ts: Transaction[]) => ts.reduce((s, t) => s + t.amount, 0)
 
@@ -51,14 +55,14 @@ export function generateInsights(transactions: Transaction[], month: string, tod
   const curTotal = sum(cur)
   const prevTotal = sum(before)
 
-  // 1. tendance globale
+  // 1. tendance globale (dépenses du quotidien)
   if (prevTotal > 0 && curTotal > 0) {
     const diff = (curTotal - prevTotal) / prevTotal
     const when = isCurrent ? ' à la même date' : ''
     if (diff <= -0.05)
-      out.push({ id: 'trend', tone: 'good', icon: '📉', title: `${Math.round(-diff * 100)} % de dépenses en moins`, text: `Par rapport au mois dernier${when} : ${moneyShort(curTotal)} contre ${moneyShort(prevTotal)}.` })
+      out.push({ id: 'trend', tone: 'good', icon: '📉', title: `${Math.round(-diff * 100)} % de dépenses en moins`, text: `Par rapport au mois précédent${when} : ${moneyShort(curTotal)} contre ${moneyShort(prevTotal)}.` })
     else if (diff >= 0.1)
-      out.push({ id: 'trend', tone: 'warn', icon: '📈', title: `${Math.round(diff * 100)} % de dépenses en plus`, text: `Par rapport au mois dernier${when} : ${moneyShort(curTotal)} contre ${moneyShort(prevTotal)}.` })
+      out.push({ id: 'trend', tone: 'warn', icon: '📈', title: `${Math.round(diff * 100)} % de dépenses en plus`, text: `Par rapport au mois précédent${when} : ${moneyShort(curTotal)} contre ${moneyShort(prevTotal)}.` })
   }
 
   // 2. catégories qui s'envolent / baissent
@@ -75,12 +79,12 @@ export function generateInsights(transactions: Transaction[], month: string, tod
   const up = changes.filter((x) => x.diff >= 20 && x.now > x.was * 1.3).sort((a, b) => b.diff - a.diff)[0]
   if (up) {
     const c = getCategory(up.cat)
-    out.push({ id: `cat-up-${up.cat}`, tone: 'warn', icon: c.emoji, title: `${c.label} : +${moneyShort(up.diff)}`, text: `${moneyShort(up.now)} ce mois-ci contre ${moneyShort(up.was)} le mois dernier. C'est le poste à surveiller.` })
+    out.push({ id: `cat-up-${up.cat}`, tone: 'warn', icon: c.emoji, title: `${c.label} : +${moneyShort(up.diff)}`, text: `${moneyShort(up.now)} contre ${moneyShort(up.was)} le mois précédent. C'est le poste à surveiller.` })
   }
   const down = changes.filter((x) => x.diff <= -20 && x.now < x.was * 0.7).sort((a, b) => a.diff - b.diff)[0]
   if (down) {
     const c = getCategory(down.cat)
-    out.push({ id: `cat-down-${down.cat}`, tone: 'good', icon: c.emoji, title: `${c.label} : ${moneyShort(down.diff)}`, text: `Bien joué, tu as réduit ce poste par rapport au mois dernier.` })
+    out.push({ id: `cat-down-${down.cat}`, tone: 'good', icon: c.emoji, title: `${c.label} : ${moneyShort(down.diff)}`, text: `Bien joué, tu as réduit ce poste par rapport au mois précédent.` })
   }
 
   // 3. petites dépenses qui s'accumulent
@@ -90,13 +94,13 @@ export function generateInsights(transactions: Transaction[], month: string, tod
     out.push({ id: 'small', tone: 'info', icon: '☕️', title: `${small.length} petites dépenses = ${moneyShort(smallTotal)}`, text: `Les achats de moins de 10 € pèsent ${Math.round((smallTotal / curTotal) * 100)} % de tes dépenses du mois.` })
 
   // 4. plus grosse dépense
-  const biggest = cur.filter((t) => !t.recurringId && !fixed.has(normalize(t.label))).reduce<Transaction | null>((a, b) => (!a || b.amount > a.amount ? b : a), null)
-  if (biggest && curTotal > 0 && biggest.amount / curTotal >= 0.15 && !biggest.recurringId && !fixed.has(normalize(biggest.label)))
+  const biggest = cur.reduce<Transaction | null>((a, b) => (!a || b.amount > a.amount ? b : a), null)
+  if (biggest && curTotal > 0 && biggest.amount / curTotal >= 0.15)
     out.push({ id: 'biggest', tone: 'info', icon: '🔎', title: `Plus grosse dépense : ${moneyShort(biggest.amount)}`, text: `${biggest.label || getCategory(biggest.category).label}, soit ${Math.round((biggest.amount / curTotal) * 100)} % du mois.` })
 
   // 5. jour de la semaine le plus dépensier (90 derniers jours, hors récurrentes)
   const since = addMonths(month, -3)
-  const recent = exp.filter((t) => !t.recurringId && monthOf(t.date) >= since && monthOf(t.date) <= month)
+  const recent = exp.filter((t) => monthOf(t.date) >= since && monthOf(t.date) <= month)
   if (recent.length >= 15) {
     const perDay = Array(7).fill(0)
     for (const t of recent) perDay[fromKey(t.date).getDay()] += t.amount
@@ -115,8 +119,8 @@ export function generateInsights(transactions: Transaction[], month: string, tod
     const saved = inc - out0
     out.push(
       saved >= 0
-        ? { id: 'saved', tone: 'good', icon: '🐷', title: `${moneyShort(saved)} mis de côté le mois dernier`, text: `Soit ${Math.round((saved / inc) * 100)} % de tes revenus.` }
-        : { id: 'saved', tone: 'warn', icon: '⚠️', title: `${moneyShort(-saved)} de plus que tes revenus`, text: `Le mois dernier, tes dépenses ont dépassé tes revenus.` },
+        ? { id: 'saved', tone: 'good', icon: '🐷', title: `${moneyShort(saved)} mis de côté ${prevName}`, text: `Soit ${Math.round((saved / inc) * 100)} % de tes revenus.` }
+        : { id: 'saved', tone: 'warn', icon: '⚠️', title: `${moneyShort(-saved)} de plus que tes revenus`, text: `Tes dépenses ont dépassé tes revenus ${prevName}.` },
     )
   }
 

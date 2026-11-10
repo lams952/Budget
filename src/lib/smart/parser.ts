@@ -63,7 +63,9 @@ export function parseQuickInput(raw: string, today = new Date()): ParsedInput {
   const amountRe = /(^|\s)([+-])?\s?(\d{1,3}(?:[  ]\d{3})+|\d+)(?:[.,](\d{1,2}))?(?!\d)\s?(€|eur(?:os?)?\b)?/i
   // préfère un nombre suivi de €
   const withEuro = new RegExp(amountRe.source.replace(/\)\?$/, ')'), 'i')
-  const m = text.match(withEuro) ?? text.match(amountRe)
+  // sinon, un nombre à décimales (« 2 cafés 7,50 ») l'emporte sur un simple entier
+  const all = [...text.matchAll(new RegExp(amountRe.source, 'gi'))]
+  const m = text.match(withEuro) ?? all.find((x) => x[4] !== undefined) ?? all[0]
   if (m) {
     const int = m[3].replace(/[  ]/g, '')
     amount = Number(`${int}.${m[4] ?? '0'}`)

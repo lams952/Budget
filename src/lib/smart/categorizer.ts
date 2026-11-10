@@ -1,4 +1,4 @@
-import type { Learned, TxType } from '../types'
+import type { Learned, Transaction, TxType } from '../types'
 import { normalize } from './normalize'
 
 const KEYWORDS: Record<string, string[]> = {
@@ -58,3 +58,18 @@ export function categorize(label: string, type: TxType, learned: Learned = {}): 
 
 /** Clé sous laquelle mémoriser une correction de l'utilisateur. */
 export const learnKey = (label: string) => normalize(label)
+
+/**
+ * Apprentissage implicite : la catégorie utilisée la dernière fois pour un même libellé.
+ * `transactions` est trié du plus récent au plus ancien. Les catégories « par défaut » sont
+ * ignorées pour laisser les mots-clés décider.
+ */
+export function learnFromHistory(transactions: Transaction[], limit = 500): Learned {
+  const out: Learned = {}
+  for (const t of transactions.slice(0, limit)) {
+    if (t.category === 'autre' || t.category === 'revenu') continue
+    const key = normalize(t.label)
+    if (key && !(key in out)) out[key] = t.category
+  }
+  return out
+}

@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../hooks/data'
+import { useUI } from '../hooks/ui'
+import { toKey } from '../lib/dates'
 import { categoriesFor, getCategory } from '../lib/categories'
 import { learnKey } from '../lib/smart/categorizer'
 import type { Transaction, TxType } from '../lib/types'
 import { CategoryPicker } from './CategoryPicker'
-import { Field, Segmented, Sheet, inputClass } from './ui'
+import { Field, Icon, Segmented, Sheet, inputClass, parseAmount } from './ui'
 
-export function EditTransactionSheet({ tx, onClose, onDone }: { tx: Transaction | null; onClose: () => void; onDone: (msg: string) => void }) {
+export function EditTransactionSheet({ tx, onClose }: { tx: Transaction | null; onClose: () => void }) {
   const store = useStore()
+  const { toast } = useUI()
   const [amount, setAmount] = useState('')
   const [label, setLabel] = useState('')
   const [type, setType] = useState<TxType>('expense')
@@ -23,14 +26,14 @@ export function EditTransactionSheet({ tx, onClose, onDone }: { tx: Transaction 
     setDate(tx.date)
   }, [tx])
 
-  const value = Number(amount.replace(/\s/g, '').replace(',', '.'))
-  const valid = value > 0 && date
+  const value = parseAmount(amount)
+  const valid = value > 0 && !!date
 
   const save = () => {
     if (!tx || !valid) return
     store.updateTransaction(tx.id, { amount: value, label: label.trim(), type, category, date })
     if (category !== tx.category && label.trim()) store.learn(learnKey(label), category)
-    onDone('Modifié ✓')
+    toast('Modification enregistrée')
     onClose()
   }
 
@@ -41,7 +44,7 @@ export function EditTransactionSheet({ tx, onClose, onDone }: { tx: Transaction 
       title="Modifier"
       right={
         <button onClick={save} disabled={!valid} className="press text-[17px] font-semibold text-accent disabled:opacity-30">
-          OK
+          Enregistrer
         </button>
       }
     >
@@ -58,7 +61,7 @@ export function EditTransactionSheet({ tx, onClose, onDone }: { tx: Transaction 
           ]}
         />
         <Field label="Montant">
-          <input inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} className={`${inputClass} tabular text-[22px] font-semibold`} />
+          <input inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} className={`${inputClass} num text-[24px] font-bold`} aria-invalid={!(value > 0)} />
         </Field>
         <Field label="Description">
           <input value={label} onChange={(e) => setLabel(e.target.value)} className={inputClass} />
@@ -70,17 +73,33 @@ export function EditTransactionSheet({ tx, onClose, onDone }: { tx: Transaction 
           <span className="mb-1.5 block px-1 text-[13px] text-muted">Catégorie</span>
           <CategoryPicker type={type} value={category} onChange={setCategory} />
         </div>
-        <button
-          onClick={() => {
-            if (!tx) return
-            store.deleteTransaction(tx.id)
-            onDone('Supprimé')
-            onClose()
-          }}
-          className="press w-full rounded-2xl bg-field py-3.5 text-[17px] font-medium text-bad"
-        >
-          Supprimer
-        </button>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={() => {
+              if (!tx) return
+              const { id: _id, createdAt: _c, recurringId: _r, ...copy } = tx
+              store.addTransactions([{ ...copy, date: toKey(new Date()) }])
+              toast("Dupliquée à aujourd'hui")
+              onClose()
+            }}
+            className="press flex items-center justify-center gap-2 rounded-2xl bg-field py-3.5 text-[16px] font-semibold"
+          >
+            <Icon name="copy" size={18} />
+            Dupliquer
+          </button>
+          <button
+            onClick={() => {
+              if (!tx) return
+              store.deleteTransaction(tx.id)
+              toast('Opération supprimée', { label: 'Annuler', run: () => store.addTransactions([tx]) })
+              onClose()
+            }}
+            className="press flex items-center justify-center gap-2 rounded-2xl bg-bad/10 py-3.5 text-[16px] font-semibold text-bad"
+          >
+            <Icon name="trash" size={18} />
+            Supprimer
+          </button>
+        </div>
       </div>
     </Sheet>
   )

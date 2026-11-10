@@ -120,7 +120,7 @@ export class SupabaseStore extends BaseStore implements Store {
   addTransactions(txs: NewTransaction[]) {
     const ids = new Set(this.getState().transactions.map((t) => t.id))
     const items: Transaction[] = txs
-      .map((t) => ({ ...t, id: t.id ?? newId(), createdAt: Date.now() }))
+      .map((t) => ({ ...t, id: t.id ?? newId(), createdAt: t.createdAt ?? Date.now() }))
       .filter((t) => !ids.has(t.id))
     if (items.length) this.enqueue({ k: 'txUpsert', items })
   }
@@ -149,9 +149,9 @@ export class SupabaseStore extends BaseStore implements Store {
   }
   async importAll(data: ExportData) {
     if (data.transactions.length) this.enqueue({ k: 'txUpsert', items: data.transactions })
-    if (data.recurring.length) this.enqueue({ k: 'recUpsert', items: data.recurring })
+    if (data.recurring?.length) this.enqueue({ k: 'recUpsert', items: data.recurring })
     if (data.learned && Object.keys(data.learned).length) this.enqueue({ k: 'learn', entries: data.learned })
-    this.enqueue({ k: 'settings', value: { ...DEFAULT_SETTINGS, ...data.settings } })
+    this.enqueue({ k: 'settings', value: { ...this.getState().settings, ...data.settings } })
     await this.flush()
   }
 
@@ -246,6 +246,7 @@ export class SupabaseStore extends BaseStore implements Store {
       recurring: merged.recurring,
       settings: { ...DEFAULT_SETTINGS, ...merged.settings },
       learned: merged.learned,
+      pending: this.queue.length,
     } satisfies Partial<DataState>)
   }
 

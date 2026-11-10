@@ -41,7 +41,7 @@ export class LocalStore extends BaseStore implements Store {
   addTransactions(txs: NewTransaction[]) {
     const ids = new Set(this.state.transactions.map((t) => t.id))
     const created: Transaction[] = txs
-      .map((t) => ({ ...t, id: t.id ?? newId(), createdAt: Date.now() }))
+      .map((t) => ({ ...t, id: t.id ?? newId(), createdAt: t.createdAt ?? Date.now() }))
       .filter((t) => !ids.has(t.id))
     this.commit({ transactions: sortTx([...this.state.transactions, ...created]) })
   }
@@ -67,11 +67,13 @@ export class LocalStore extends BaseStore implements Store {
     if (key) this.commit({ learned: { ...this.state.learned, [key]: category } })
   }
   async importAll(data: ExportData) {
+    // fusion par identifiant : la sauvegarde complète ou remplace, sans rien effacer d'autre
+    const byId = <T extends { id: string }>(current: T[], incoming: T[] = []) => [...new Map([...current, ...incoming].map((x) => [x.id, x])).values()]
     this.commit({
-      transactions: sortTx(data.transactions),
-      recurring: data.recurring,
-      settings: { ...DEFAULT_SETTINGS, ...data.settings },
-      learned: data.learned ?? {},
+      transactions: sortTx(byId(this.state.transactions, data.transactions)),
+      recurring: byId(this.state.recurring, data.recurring),
+      settings: { ...DEFAULT_SETTINGS, ...this.state.settings, ...data.settings },
+      learned: { ...this.state.learned, ...data.learned },
     })
   }
   dispose() {}

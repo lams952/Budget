@@ -7,9 +7,11 @@ export interface DataState {
   recurring: Recurring[]
   settings: Settings
   learned: Learned
+  /** écritures pas encore envoyées au serveur (toujours 0 en mode local) */
+  pending: number
 }
 
-export type NewTransaction = Omit<Transaction, 'id' | 'createdAt'> & { id?: string }
+export type NewTransaction = Omit<Transaction, 'id' | 'createdAt'> & { id?: string; createdAt?: number }
 export type NewRecurring = Omit<Recurring, 'id'>
 
 export interface ExportData {
@@ -42,6 +44,7 @@ export const initialState = (): DataState => ({
   recurring: [],
   settings: { ...DEFAULT_SETTINGS },
   learned: {},
+  pending: 0,
 })
 
 export const sortTx = (txs: Transaction[]) =>

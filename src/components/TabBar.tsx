@@ -9,22 +9,30 @@ const ICONS: Record<Tab, string> = {
 const LABELS: Record<Tab, string> = { home: 'Accueil', history: 'Historique', insights: 'Analyse', settings: 'Réglages' }
 
 export function TabBar({ tab, setTab, onAdd }: { tab: Tab; setTab: (t: Tab) => void; onAdd: () => void }) {
-  const item = (t: Tab) => (
-    <button key={t} onClick={() => setTab(t)} className={`flex flex-1 flex-col items-center gap-0.5 pt-2 text-[10px] font-medium transition-colors ${tab === t ? 'text-ink' : 'text-muted'}`}>
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={tab === t ? 2.2 : 1.8} strokeLinecap="round" strokeLinejoin="round">
-        <path d={ICONS[t]} />
-      </svg>
-      {LABELS[t]}
-    </button>
-  )
+  const item = (t: Tab) => {
+    const active = tab === t
+    return (
+      <button
+        key={t}
+        onClick={() => setTab(t)}
+        className={`press flex flex-1 flex-col items-center gap-[3px] pt-2.5 text-[10px] font-semibold transition-colors ${active ? 'text-accent' : 'text-muted'}`}
+        aria-current={active ? 'page' : undefined}
+      >
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.3 : 1.9} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d={ICONS[t]} />
+        </svg>
+        {LABELS[t]}
+      </button>
+    )
+  }
   return (
-    <nav className="pb-safe fixed inset-x-0 bottom-0 z-30 border-t border-line bg-bg/80 backdrop-blur-xl">
+    <nav className="pb-safe relative z-30 shrink-0 border-t border-line bg-card/85 backdrop-blur-2xl">
       <div className="mx-auto flex max-w-lg items-start">
         {item('home')}
         {item('history')}
         <div className="flex flex-1 justify-center">
-          <button onClick={onAdd} aria-label="Ajouter une dépense" className="press -mt-5 flex h-14 w-14 items-center justify-center rounded-full bg-ink text-bg shadow-lg">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round">
+          <button onClick={onAdd} aria-label="Ajouter une dépense" className="press accent-grad fab -mt-6 flex h-[58px] w-[58px] items-center justify-center rounded-full">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden>
               <path d="M12 5v14M5 12h14" />
             </svg>
           </button>

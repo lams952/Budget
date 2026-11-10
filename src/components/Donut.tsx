@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-export function Donut({ data, size = 200, stroke = 22, children }: { data: { value: number; color: string }[]; size?: number; stroke?: number; children?: ReactNode }) {
+export function Donut({ data, size = 196, stroke = 24, children }: { data: { value: number; color: string }[]; size?: number; stroke?: number; children?: ReactNode }) {
   const r = (size - stroke) / 2
   const c = 2 * Math.PI * r
   const total = data.reduce((s, d) => s + d.value, 0)
@@ -9,7 +9,7 @@ export function Donut({ data, size = 200, stroke = 22, children }: { data: { val
   return (
     <div className="relative mx-auto" style={{ width: size, height: size }}>
       <svg width={size} height={size} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--card)" strokeWidth={stroke} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--card2)" strokeWidth={stroke} />
         {total > 0 &&
           data.map((d, i) => {
             const len = (d.value / total) * c

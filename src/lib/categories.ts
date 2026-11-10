@@ -18,7 +18,7 @@ export const CATEGORIES: Category[] = [
   { id: 'shopping', label: 'Shopping', emoji: '🛍️', color: '#FF6482', type: 'expense' },
   { id: 'sante', label: 'Santé', emoji: '💊', color: '#30B0C7', type: 'expense' },
   { id: 'voyage', label: 'Voyages', emoji: '✈️', color: '#00C7BE', type: 'expense' },
-  { id: 'autre', label: 'Autre', emoji: '•', color: '#8E8E93', type: 'expense' },
+  { id: 'autre', label: 'Autre', emoji: '🧾', color: '#8E8E93', type: 'expense' },
   { id: 'salaire', label: 'Salaire', emoji: '💼', color: '#34C759', type: 'income' },
   { id: 'revenu', label: 'Autre revenu', emoji: '💶', color: '#30D158', type: 'income' },
 ]

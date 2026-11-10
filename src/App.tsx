@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { EditTransactionSheet } from './components/EditTransactionSheet'
 import { QuickAddSheet } from './components/QuickAddSheet'
 import { TabBar } from './components/TabBar'
-import { Toast } from './components/ui'
+import { ConfirmSheet, Toast, type ConfirmData, type ToastData } from './components/ui'
 import { SupabaseStore } from './data/supabaseStore'
 import { LocalStore } from './data/localStore'
 import type { Store } from './data/store'
@@ -16,15 +16,16 @@ import type { Transaction } from './lib/types'
 import { History } from './screens/History'
 import { Home } from './screens/Home'
 import { Insights } from './screens/Insights'
-import { Login } from './screens/Login'
+import { Login, NewPassword } from './screens/Login'
 import { Onboarding } from './screens/Onboarding'
 import { Settings } from './screens/Settings'
 
 export default function App() {
-  const user = useAuth()
+  const { user, recovering, endRecovery } = useAuth()
   if (!supabaseEnabled) return <WithStore id="local" make={() => new LocalStore()} />
   if (user === undefined) return <Splash />
   if (!user) return <Login />
+  if (recovering) return <NewPassword onDone={endRecovery} />
   return <WithStore id={user.id} make={() => new SupabaseStore(getSupabase(), user.id)} email={user.email} />
 }
 
@@ -45,7 +46,11 @@ function WithStore({ id, make, email }: { id: string; make: () => Store; email?:
 }
 
 function Splash() {
-  return <div className="flex h-full items-center justify-center text-muted">…</div>
+  return (
+    <div className="flex h-full items-center justify-center bg-bg">
+      <div className="spinner" />
+    </div>
+  )
 }
 
 /** Change quand on revient sur l'app un autre jour (pour les prévisions et les récurrentes). */
@@ -59,21 +64,28 @@ function useToday() {
   return day
 }
 
+const TABS: Tab[] = ['home', 'history', 'insights', 'settings']
+
 function Shell({ email }: { email?: string | null }) {
   const store = useStore()
   const data = useData()
   const day = useToday()
   const [tab, setTabState] = useState<Tab>('home')
+  const [visited, setVisited] = useState<Set<Tab>>(() => new Set(['home']))
   const [quickOpen, setQuickOpen] = useState(false)
   const [editing, setEditing] = useState<Transaction | null>(null)
-  const [toast, setToast] = useState<string | null>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const [toast, setToast] = useState<ToastData | null>(null)
+  const [confirmData, setConfirmData] = useState<ConfirmData | null>(null)
+  const [search, setSearch] = useState('')
+  const proxyRef = useRef<HTMLInputElement>(null)
+  const scrollers = useRef<Partial<Record<Tab, HTMLDivElement | null>>>({})
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
 
-  const showToast = useCallback((m: string) => {
-    setToast(m)
+  const showToast = useCallback((message: string, action?: ToastData['action']) => {
+    setToast({ message, action })
     clearTimeout(toastTimer.current)
-    toastTimer.current = setTimeout(() => setToast(null), 1800)
+    // un toast avec « Annuler » reste plus longtemps, le temps de réagir
+    toastTimer.current = setTimeout(() => setToast(null), action ? 5000 : 2000)
   }, [])
 
   // Génère automatiquement les charges fixes arrivées à échéance.
@@ -88,31 +100,78 @@ function Shell({ email }: { email?: string | null }) {
   }, [data.ready, data.recurring, day])
 
   const setTab = useCallback((t: Tab) => {
-    setTabState(t)
-    window.scrollTo({ top: 0 })
+    setTabState((cur) => {
+      // re-taper l'onglet actif remonte en haut, comme sur iOS
+      if (cur === t) scrollers.current[t]?.scrollTo({ top: 0, behavior: 'smooth' })
+      return t
+    })
+    setVisited((v) => (v.has(t) ? v : new Set(v).add(t)))
   }, [])
   const openQuickAdd = useCallback(() => {
+    // iOS n'ouvre le clavier que si le focus est donné pendant le tap : on focalise un champ relais
+    // tout de suite, puis la feuille passe le focus à son vrai champ (le clavier reste ouvert).
+    proxyRef.current?.focus({ preventScroll: true })
     setQuickOpen(true)
-    // focus synchrone dans le geste utilisateur : nécessaire pour ouvrir le clavier sur iOS
-    inputRef.current?.focus({ preventScroll: true })
   }, [])
-  const ui: UI = useMemo(() => ({ tab, setTab, openQuickAdd, editTransaction: setEditing }), [tab, setTab, openQuickAdd])
+  const openHistory = useCallback(
+    (query = '') => {
+      setSearch(query)
+      setTab('history')
+      scrollers.current.history?.scrollTo({ top: 0 })
+    },
+    [setTab],
+  )
+  const ui: UI = useMemo(
+    () => ({ tab, setTab, openQuickAdd, editTransaction: setEditing, search, setSearch, openHistory, toast: showToast, confirm: setConfirmData }),
+    [tab, setTab, openQuickAdd, search, openHistory, showToast],
+  )
 
   if (!data.ready) return <Splash />
-  if (!data.settings.onboarded && data.transactions.length === 0) return <Onboarding />
+  if (!data.settings.onboarded && data.transactions.length === 0 && data.recurring.length === 0) return <Onboarding />
+
+  const screen = (t: Tab) => {
+    switch (t) {
+      case 'home':
+        return <Home />
+      case 'history':
+        return <History />
+      case 'insights':
+        return <Insights />
+      case 'settings':
+        return <Settings email={email} />
+    }
+  }
 
   return (
     <UIContext.Provider value={ui}>
-      <main key={day} className="pt-safe mx-auto max-w-lg px-5 pb-32">
-        {tab === 'home' && <Home />}
-        {tab === 'history' && <History onToast={showToast} />}
-        {tab === 'insights' && <Insights />}
-        {tab === 'settings' && <Settings email={email} onToast={showToast} />}
-      </main>
-      <TabBar tab={tab} setTab={setTab} onAdd={openQuickAdd} />
-      <QuickAddSheet ref={inputRef} open={quickOpen} onClose={() => setQuickOpen(false)} onSaved={showToast} />
-      <EditTransactionSheet tx={editing} onClose={() => setEditing(null)} onDone={showToast} />
-      <Toast message={toast} />
+      <div className="flex h-full flex-col">
+        {/* Chaque onglet a sa propre zone de défilement : il garde sa position et ne défile que s'il a du contenu. */}
+        <div className="relative min-h-0 flex-1">
+          {TABS.filter((t) => visited.has(t)).map((t) => (
+            <div
+              key={`${t}-${day}`}
+              ref={(el) => {
+                scrollers.current[t] = el
+              }}
+              className={`scroller absolute inset-0 ${tab === t ? '' : 'hidden'}`}
+            >
+              <div className="pt-safe fade-up mx-auto max-w-lg px-4 pb-10">{screen(t)}</div>
+            </div>
+          ))}
+        </div>
+        <TabBar tab={tab} setTab={setTab} onAdd={openQuickAdd} />
+      </div>
+      <input ref={proxyRef} aria-hidden tabIndex={-1} className="pointer-events-none fixed top-0 left-0 h-px w-px opacity-0" />
+      <QuickAddSheet open={quickOpen} onClose={() => setQuickOpen(false)} />
+      <EditTransactionSheet tx={editing} onClose={() => setEditing(null)} />
+      <ConfirmSheet data={confirmData} onClose={() => setConfirmData(null)} />
+      <Toast
+        toast={toast}
+        onAction={() => {
+          toast?.action?.run()
+          setToast(null)
+        }}
+      />
     </UIContext.Provider>
   )
 }

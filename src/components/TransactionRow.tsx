@@ -7,16 +7,16 @@ import { CategoryIcon } from './ui'
 export function TransactionRow({ t, subtitle }: { t: Transaction; subtitle?: string }) {
   const cat = getCategory(t.category)
   return (
-    <div className="flex items-center gap-3 py-2.5">
+    <div className="flex items-center gap-3 px-4 py-3">
       <CategoryIcon id={t.category} />
       <div className="min-w-0 flex-1">
-        <div className="truncate text-[16px]">{t.label || cat.label}</div>
+        <div className="truncate text-[16px] font-medium">{t.label || cat.label}</div>
         <div className="truncate text-[13px] text-muted">
           {subtitle ?? cat.label}
-          {t.recurringId ? ' · ↻' : ''}
+          {t.recurringId ? ' · charge fixe' : ''}
         </div>
       </div>
-      <div className={`tabular text-[16px] font-medium ${t.type === 'income' ? 'text-good' : ''}`}>
+      <div className={`num text-[16px] font-semibold ${t.type === 'income' ? 'text-good' : ''}`}>
         {t.type === 'income' ? '+' : '−'}
         {money(t.amount)}
       </div>
@@ -36,14 +36,15 @@ export function SwipeRow({ children, onTap, onDelete }: { children: React.ReactN
     <div className="relative overflow-hidden">
       <button
         onClick={onDelete}
-        className="absolute inset-y-0 right-0 flex items-center justify-end bg-bad pr-5 text-[15px] font-medium text-white"
+        className="absolute inset-y-0 right-0 flex items-center justify-end bg-bad pr-5 text-[15px] font-semibold text-white"
+        aria-hidden={dx === 0}
         style={{ width: Math.max(-dx, 0) + 1 }}
         tabIndex={dx === 0 ? -1 : 0}
       >
         Supprimer
       </button>
       <div
-        className="relative bg-bg"
+        className="relative cursor-pointer bg-card"
         style={{ transform: `translateX(${dx}px)`, transition: dragging ? 'none' : 'transform 0.25s ease' }}
         onTouchStart={(e) => {
           g.current = { x: e.touches[0].clientX, y: e.touches[0].clientY, base: dx, dir: null, moved: false }
@@ -71,6 +72,14 @@ export function SwipeRow({ children, onTap, onDelete }: { children: React.ReactN
             setDx(0)
             onDelete()
           } else setDx(dx < OPEN / 2 ? OPEN : 0)
+        }}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            onTap()
+          }
         }}
         onClick={() => {
           if (g.current?.moved) {

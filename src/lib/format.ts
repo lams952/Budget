@@ -4,6 +4,8 @@ const eur0 = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR'
 export const money = (n: number) => eur.format(n)
 /** Arrondi à l'euro si le montant est "gros" */
 export const moneyShort = (n: number) => (Math.abs(n) >= 100 || Number.isInteger(n) ? eur0.format(n) : eur.format(n))
+/** Toujours arrondi à l'euro (grands chiffres de synthèse) */
+export const moneyRound = (n: number) => eur0.format(Math.round(n))
 export const pct = (n: number) => `${Math.round(n * 100)} %`
 
 const dayFmt = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })

@@ -5,7 +5,7 @@ import { monthKey } from '../lib/dates'
 import { categorize } from '../lib/smart/categorizer'
 import type { Recurring, TxType } from '../lib/types'
 import { CategoryPicker } from './CategoryPicker'
-import { Field, Segmented, Sheet, inputClass } from './ui'
+import { Field, Segmented, Sheet, inputClass, parseAmount } from './ui'
 
 /** `editing` : null = fermé, 'new' = création, sinon la récurrente à modifier. */
 export function RecurringSheet({ editing, onClose }: { editing: Recurring | 'new' | null; onClose: () => void }) {
@@ -36,9 +36,9 @@ export function RecurringSheet({ editing, onClose }: { editing: Recurring | 'new
     }
   }, [editing])
 
-  const value = Number(amount.replace(/\s/g, '').replace(',', '.'))
+  const value = parseAmount(amount)
   const d = Math.round(Number(day))
-  const valid = label.trim() && value > 0 && d >= 1 && d <= 31
+  const valid = !!label.trim() && value > 0 && d >= 1 && d <= 31
 
   const save = () => {
     if (!valid || !editing) return
@@ -60,10 +60,10 @@ export function RecurringSheet({ editing, onClose }: { editing: Recurring | 'new
     <Sheet
       open={!!editing}
       onClose={onClose}
-      title={editing === 'new' ? 'Charge fixe' : 'Modifier'}
+      title={editing === 'new' ? 'Nouvelle échéance' : 'Modifier'}
       right={
         <button onClick={save} disabled={!valid} className="press text-[17px] font-semibold text-accent disabled:opacity-30">
-          OK
+          {editing === 'new' ? 'Ajouter' : 'Enregistrer'}
         </button>
       }
     >
@@ -109,16 +109,19 @@ export function RecurringSheet({ editing, onClose }: { editing: Recurring | 'new
             }}
           />
         </div>
-        <p className="px-1 text-[13px] text-muted">Elle sera ajoutée automatiquement chaque mois à cette date.</p>
+        <p className="px-1 text-[13px] text-muted">
+          {d > 28 && d <= 31 ? `Les mois plus courts, elle tombera le dernier jour du mois. ` : ''}
+          {type === 'income' ? 'Ce revenu sera ajouté' : 'Cette charge sera ajoutée'} automatiquement chaque mois à cette date.
+        </p>
         {editing && editing !== 'new' && (
           <button
             onClick={() => {
               store.deleteRecurring(editing.id)
               onClose()
             }}
-            className="press w-full rounded-2xl bg-field py-3.5 text-[17px] font-medium text-bad"
+            className="press w-full rounded-2xl bg-bad/10 py-3.5 text-[16px] font-semibold text-bad"
           >
-            Supprimer la charge fixe
+            Supprimer cette échéance
           </button>
         )}
       </div>

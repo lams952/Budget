@@ -11,6 +11,12 @@ npm run dev
 
 Sans configuration Supabase, l'app tourne en **mode local** (données dans le navigateur de l'appareil). Pratique pour l'essayer.
 
+Pour forcer le mode local même avec Supabase configuré (tester sans toucher à tes vraies données) :
+
+```bash
+VITE_LOCAL_MODE=1 npm run dev
+```
+
 ## Activer la synchro cloud (Supabase, gratuit)
 
 1. Va sur <https://supabase.com> → **New project** → choisis une région Europe (Frankfurt ou Londres) et un mot de passe de base de données.
@@ -40,11 +46,11 @@ Ouvre l'URL dans **Safari** → bouton **Partager** → **Sur l'écran d'accueil
 ## Utilisation
 
 - **+** : tape `12,50 boulangerie`, `45 essence hier`, `+1800 salaire`, `9,90 ciné samedi`, `30 resto 03/11`…
-  La catégorie est devinée ; si tu la corriges, l'app s'en souvient pour la prochaine fois.
-- **Accueil** : reste à dépenser, montant par jour, prévision de fin de mois.
-- **Historique** : recherche, tap pour modifier, glisse à gauche pour supprimer.
-- **Analyse** : répartition par catégorie, comparaison avec le mois dernier, conseils.
-- **Réglages** : budget mensuel, charges fixes (ajoutées automatiquement chaque mois), export CSV / sauvegarde.
+  La catégorie est devinée d'après tes habitudes ; si tu la corriges, l'app s'en souvient. En tapant un libellé déjà connu, son montant habituel est proposé. Chaque ajout peut être annulé depuis la notification.
+- **Accueil** : reste à dépenser, enveloppe du jour, montant par jour, prévision de fin de mois, échéances à venir. Le point blanc sur l'anneau indique où tu devrais en être à cette date.
+- **Historique** : recherche par libellé, catégorie ou montant, filtre dépenses / revenus, tap pour modifier ou dupliquer, glisse à gauche pour supprimer (annulable).
+- **Analyse** : revenus, dépenses et solde du mois, répartition par catégorie (tap sur une catégorie pour voir ses opérations), comparaison avec le mois précédent à la même date, conseils.
+- **Réglages** : budget mensuel (avec une suggestion basée sur tes dépenses réelles), charges et revenus fixes (ajoutés automatiquement chaque mois), export CSV / sauvegarde, état de la synchronisation.
 
 ## Développement
 

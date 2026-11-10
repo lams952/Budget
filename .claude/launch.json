@@ -1,6 +1,7 @@
 {
   "version": "0.0.1",
   "configurations": [
-    { "name": "budget-dev", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev", "--", "--port", "5173", "--strictPort"], "port": 5173 }
+    { "name": "budget-dev", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev", "--", "--port", "5173", "--strictPort"], "port": 5173 },
+    { "name": "budget-local", "runtimeExecutable": "env", "runtimeArgs": ["VITE_LOCAL_MODE=1", "npm", "run", "dev", "--", "--port", "5174", "--strictPort"], "port": 5174 }
   ]
 }
