@@ -4,5 +4,5 @@
  *
  * Tant que supabaseUrl ou supabaseAnonKey est vide, l'app fonctionne en « mode local » (données sur cet appareil uniquement).
  */
-export const supabaseUrl = ''
-export const supabaseAnonKey = ''
+export const supabaseUrl = 'https://tqxtsdaxrgwffsvannfh.supabase.co'
+export const supabaseAnonKey = 'sb_publishable_eSOhW0-qJpEWDab7daQwGQ_1rQnUK51'
