@@ -1,0 +1,107 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #ffffff;
+  --card: #f2f2f7;
+  --card2: #e9e9ee;
+  --ink: #000000;
+  --muted: #8e8e93;
+  --line: rgba(60, 60, 67, 0.12);
+  --good: #34c759;
+  --warn: #ff9500;
+  --bad: #ff3b30;
+  --accent: #007aff;
+  --sheet: #ffffff;
+  --field: #f2f2f7;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #000000;
+    --card: #1c1c1e;
+    --card2: #2c2c2e;
+    --ink: #ffffff;
+    --muted: #8e8e93;
+    --line: rgba(84, 84, 88, 0.45);
+    --good: #30d158;
+    --warn: #ff9f0a;
+    --bad: #ff453a;
+    --accent: #0a84ff;
+    --sheet: #1c1c1e;
+    --field: #2c2c2e;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-card: var(--card);
+  --color-card2: var(--card2);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-good: var(--good);
+  --color-warn: var(--warn);
+  --color-bad: var(--bad);
+  --color-accent: var(--accent);
+  --color-sheet: var(--sheet);
+  --color-field: var(--field);
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
+}
+
+@layer base {
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+input,
+textarea,
+select {
+  user-select: text;
+  -webkit-user-select: text;
+  font-size: 16px; /* évite le zoom auto d'iOS */
+}
+}
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+.pt-safe {
+  padding-top: max(env(safe-area-inset-top), 12px);
+}
+.pb-safe {
+  padding-bottom: max(env(safe-area-inset-bottom), 8px);
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.press {
+  transition: transform 0.12s ease, opacity 0.12s ease;
+}
+.press:active {
+  transform: scale(0.97);
+  opacity: 0.8;
+}
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.fade-up {
+  animation: fade-up 0.25s ease both;
+}
