@@ -49,7 +49,7 @@ export function Insights() {
   const maxBar = Math.max(settings.monthlyBudget, ...months.map((x) => x.total), 1)
   const hasHistory = months.some((x) => x.total > 0)
 
-  const navBtn = 'press flex h-10 w-10 items-center justify-center rounded-full text-accent disabled:text-muted disabled:opacity-30'
+  const navBtn = 'press flex h-10 w-10 items-center justify-center rounded-full bg-chip text-ink disabled:text-muted disabled:opacity-30'
 
   return (
     <div>
@@ -59,7 +59,7 @@ export function Insights() {
         <button onClick={() => setMonth(addMonths(month, -1))} disabled={month <= oldest} className={navBtn} aria-label="Mois précédent">
           <Icon name="chevronLeft" size={20} strokeWidth={2.4} />
         </button>
-        <button onClick={() => setMonth(current)} disabled={month === current} className="px-3 text-[16px] font-semibold" aria-label={`${monthName(fromKey(month))}. Revenir au mois en cours.`}>
+        <button onClick={() => setMonth(current)} disabled={month === current} className="px-3 text-[16px] font-medium" aria-label={`${monthName(fromKey(month))}. Revenir au mois en cours.`}>
           {monthName(fromKey(month))}
         </button>
         <button onClick={() => setMonth(addMonths(month, 1))} disabled={month >= current} className={navBtn} aria-label="Mois suivant">
@@ -89,7 +89,7 @@ export function Insights() {
             <Card className="mt-3">
               <Donut data={totals.map((c) => ({ value: c.total, color: getCategory(c.category).color }))}>
                 <span className="text-[13px] font-medium text-muted">Dépenses</span>
-                <span className="num text-[30px] leading-tight font-bold">{moneyShort(total)}</span>
+                <span className="num text-[30px] leading-tight font-normal tracking-[-0.03em]">{moneyShort(total)}</span>
                 <span className="text-[12px] text-muted">
                   {totals.length} catégorie{totals.length > 1 ? 's' : ''}
                 </span>
@@ -106,7 +106,7 @@ export function Insights() {
                       <div className="min-w-0 flex-1">
                         <div className="flex items-baseline justify-between gap-2 text-[15px]">
                           <span className="truncate font-medium">{cat.label}</span>
-                          <span className="num font-semibold">{moneyShort(c.total)}</span>
+                          <span className="num">{moneyShort(c.total)}</span>
                         </div>
                         <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-card2">
                           <div className="h-full rounded-full" style={{ width: `${Math.max(share * 100, 2)}%`, background: cat.color, transition: 'width .6s cubic-bezier(.2,.8,.2,1)' }} />
@@ -139,7 +139,7 @@ export function Insights() {
           <div className="card divide-y divide-line overflow-hidden rounded-3xl">
             {insights.map((i) => (
               <div key={i.id} className="flex items-center gap-3 px-4 py-3.5">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-field text-[22px]">{i.icon}</span>
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-chip text-[22px]">{i.icon}</span>
                 <div className="min-w-0">
                   <p className={`text-[16px] font-semibold ${i.tone === 'warn' ? 'text-warn' : i.tone === 'good' ? 'text-good' : ''}`}>{i.title}</p>
                   <p className="mt-0.5 text-[14px] text-muted">{i.text}</p>
@@ -157,7 +157,7 @@ export function Insights() {
             <div className="relative flex h-40 items-end gap-2.5">
               {settings.monthlyBudget > 0 && (
                 <div className="pointer-events-none absolute inset-x-0 z-10 border-t border-dashed border-muted/70" style={{ bottom: `${(settings.monthlyBudget / maxBar) * 82}%` }}>
-                  <span className="absolute -top-4 right-0 rounded bg-card px-1 text-[10px] font-medium text-muted">budget</span>
+                  <span className="absolute -top-4 right-0 rounded bg-chip px-1 text-[10px] font-medium text-muted">budget</span>
                 </div>
               )}
               {months.map((x) => (
@@ -202,7 +202,7 @@ function Summary({ label, value, className = '' }: { label: string; value: strin
   return (
     <div className="min-w-0 px-2">
       <div className="text-[12px] font-medium text-muted">{label}</div>
-      <div className={`num mt-0.5 truncate text-[18px] font-bold ${className}`}>{value}</div>
+      <div className={`num mt-0.5 truncate text-[19px] ${className}`}>{value}</div>
     </div>
   )
 }

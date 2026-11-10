@@ -63,7 +63,7 @@ export function EditTransactionSheet({ tx, onClose }: { tx: Transaction | null; 
         />
         <div className="grid grid-cols-2 gap-3">
           <Field label="Montant">
-            <input inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} className={`${inputClass} num !py-3 text-[22px] font-bold`} aria-invalid={!(value > 0)} />
+            <input inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} className={`${inputClass} num !py-3 text-[22px]`} aria-invalid={!(value > 0)} />
           </Field>
           <Field label="Date">
             <input type="date" value={date} max={toKey(new Date())} onChange={(e) => setDate(e.target.value)} className={`${inputClass} !min-h-0 !py-3 appearance-none`} />

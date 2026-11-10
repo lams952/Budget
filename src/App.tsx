@@ -47,7 +47,7 @@ function WithStore({ id, make, email }: { id: string; make: () => Store; email?:
 
 function Splash() {
   return (
-    <div className="flex h-full items-center justify-center bg-bg">
+    <div className="flex h-full items-center justify-center">
       <div className="spinner" />
     </div>
   )
@@ -144,9 +144,9 @@ function Shell({ email }: { email?: string | null }) {
 
   return (
     <UIContext.Provider value={ui}>
-      <div className="flex h-full flex-col">
+      <div className="relative h-full">
         {/* Chaque onglet a sa propre zone de défilement : il garde sa position et ne défile que s'il a du contenu. */}
-        <div className="relative min-h-0 flex-1">
+        <div className="absolute inset-0">
           {TABS.filter((t) => visited.has(t)).map((t) => (
             <div
               key={`${t}-${day}`}
@@ -155,7 +155,8 @@ function Shell({ email }: { email?: string | null }) {
               }}
               className={`scroller absolute inset-0 ${tab === t ? 'fade-up' : 'hidden'}`}
             >
-              <div className="pt-safe mx-auto max-w-lg px-4 pb-10">{screen(t)}</div>
+              {/* marge basse : la barre flottante (saisie + onglets) recouvre le bas de l'écran */}
+              <div className="pt-safe mx-auto max-w-lg px-4 pb-[calc(150px+env(safe-area-inset-bottom))]">{screen(t)}</div>
             </div>
           ))}
         </div>

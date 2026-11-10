@@ -113,7 +113,7 @@ export function Sheet({ open, onClose, title, children, right }: { open: boolean
           transition: 'transform 0.38s cubic-bezier(0.32, 0.72, 0, 1)',
           touchAction: 'pan-x', // pas de défilement vertical : le geste vertical sert uniquement à fermer
         }}
-        className={`absolute inset-x-0 bottom-0 mx-auto flex max-w-lg flex-col overflow-hidden rounded-t-[30px] bg-sheet shadow-[0_-12px_40px_-12px_rgba(0,0,0,0.35)] will-change-transform ${vv.keyboard ? 'pb-2' : 'pb-safe'}`}
+        className={`absolute inset-x-0 bottom-0 mx-auto flex max-w-lg flex-col overflow-hidden frost rounded-t-[32px] border-t border-card-line bg-sheet shadow-[0_-12px_40px_-12px_rgba(0,0,0,0.3)] will-change-transform ${vv.keyboard ? 'pb-2' : 'pb-safe'}`}
       >
         <div className="shrink-0">
           <div className="mx-auto mt-2.5 h-[5px] w-9 rounded-full bg-card2" />
@@ -141,8 +141,8 @@ export function Card({ children, className = '' }: { children: ReactNode; classN
 
 export function SectionTitle({ children, action }: { children: ReactNode; action?: ReactNode }) {
   return (
-    <div className="mt-8 mb-2.5 flex items-baseline justify-between px-1">
-      <h2 className="text-[13px] font-semibold tracking-wide text-muted uppercase">{children}</h2>
+    <div className="mt-7 mb-2.5 flex items-baseline justify-between px-1">
+      <h2 className="text-[16px] font-medium">{children}</h2>
       {action}
     </div>
   )
@@ -150,11 +150,11 @@ export function SectionTitle({ children, action }: { children: ReactNode; action
 
 export function ScreenTitle({ children, sub, right }: { children: ReactNode; sub?: ReactNode; right?: ReactNode }) {
   return (
-    <header className="flex items-end justify-between px-1 pt-3">
-      <div className="min-w-0">
-        {sub && <p className="text-[13px] font-semibold tracking-wide text-muted uppercase">{sub}</p>}
-        <h1 className="display text-[32px] leading-tight font-bold">{children}</h1>
-      </div>
+    <header className="flex items-end justify-between gap-3 px-1 pt-4">
+      <h1 className="min-w-0 text-[34px] leading-[1.1] font-medium tracking-[-0.025em]">
+        {children}
+        {sub && <span className="block font-light text-muted">{sub}</span>}
+      </h1>
       {right}
     </header>
   )
@@ -180,6 +180,10 @@ const ICONS = {
   copy: 'M9 9h10v11H9zM5 15V4h10',
   trash: 'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13',
   check: 'M5 12.5l4.5 4.5L19 7.5',
+  sun: 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  trend: 'M3 17l6-6 4 4 8-8M15 7h6v6',
+  wallet: 'M4 7a2 2 0 0 1 2-2h12v4M4 7v10a2 2 0 0 0 2 2h14V9H6a2 2 0 0 1-2-2zM16 14h.01',
+  calendar: 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4',
 } as const
 
 export function Icon({ name, size = 20, strokeWidth = 2, className = '' }: { name: keyof typeof ICONS; size?: number; strokeWidth?: number; className?: string }) {
@@ -194,8 +198,8 @@ export function CategoryIcon({ id, size = 40 }: { id: string; size?: number }) {
   const c = getCategory(id)
   return (
     <div
-      className="flex shrink-0 items-center justify-center"
-      style={{ width: size, height: size, borderRadius: size * 0.32, background: `${c.color}24`, fontSize: size * 0.46 }}
+      className="flex shrink-0 items-center justify-center rounded-full"
+      style={{ width: size, height: size, background: `color-mix(in srgb, ${c.color} 16%, var(--chip))`, fontSize: size * 0.44 }}
       aria-hidden
     >
       {c.emoji}
@@ -205,19 +209,30 @@ export function CategoryIcon({ id, size = 40 }: { id: string; size?: number }) {
 
 export function Segmented<T extends string>({ value, onChange, options }: { value: T; onChange: (v: T) => void; options: { value: T; label: string }[] }) {
   return (
-    <div className="flex rounded-[14px] bg-field p-[3px]" role="tablist">
+    <div className="no-scrollbar flex gap-1.5 overflow-x-auto" role="tablist">
       {options.map((o) => (
         <button
           key={o.value}
           role="tab"
           aria-selected={value === o.value}
           onClick={() => onChange(o.value)}
-          className={`flex-1 rounded-[11px] px-3 py-1.5 text-[14px] font-semibold transition ${value === o.value ? 'bg-raise text-ink shadow-[0_1px_3px_rgba(0,0,0,0.12)]' : 'text-muted'}`}
+          className={`press shrink-0 rounded-full px-4 py-2.5 text-[14px] transition-colors ${value === o.value ? 'bg-solid font-medium text-on-solid' : 'card text-muted'}`}
         >
           {o.label}
         </button>
       ))}
     </div>
+  )
+}
+
+/** Montant façon « 742,30 € » : partie entière pleine, décimales et symbole en gris. */
+export function Amount({ value, className = '' }: { value: string; className?: string }) {
+  const i = value.search(/,|\s€/)
+  return (
+    <span className={`num ${className}`}>
+      {i < 0 ? value : value.slice(0, i)}
+      {i >= 0 && <span className="cents">{value.slice(i)}</span>}
+    </span>
   )
 }
 
@@ -227,7 +242,7 @@ export function PrimaryButton({ children, onClick, disabled, type = 'button', cl
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`press accent-grad w-full rounded-2xl py-4 text-[17px] font-semibold disabled:opacity-35 ${className}`}
+      className={`press accent-grad w-full rounded-full py-4 text-[17px] font-semibold disabled:opacity-35 ${className}`}
     >
       {children}
     </button>
@@ -263,10 +278,10 @@ export function Toast({ toast, onAction }: { toast: ToastData | null; onAction: 
   const shown = toast ?? last.current
   return (
     <div role="status" className={`pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center px-4 pt-safe transition-all duration-300 ${toast ? 'translate-y-2 opacity-100' : '-translate-y-6 opacity-0'}`}>
-      <div className={`flex max-w-full items-center gap-3 rounded-full bg-ink py-2.5 pr-2.5 pl-4 text-[15px] font-medium text-bg shadow-xl ${toast ? 'pointer-events-auto' : ''}`}>
+      <div className={`flex max-w-full items-center gap-3 rounded-full bg-solid py-2.5 pr-2.5 pl-4 text-[15px] font-medium text-on-solid shadow-xl ${toast ? 'pointer-events-auto' : ''}`}>
         <span className="truncate pr-1.5">{shown?.message}</span>
         {shown?.action && (
-          <button onClick={onAction} className="press rounded-full bg-bg/15 px-3 py-1 text-[14px] font-semibold">
+          <button onClick={onAction} className="press rounded-full bg-on-solid/15 px-3 py-1 text-[14px] font-semibold">
             {shown.action.label}
           </button>
         )}
@@ -291,14 +306,14 @@ export function ConfirmSheet({ data, onClose }: { data: ConfirmData | null; onCl
   return (
     <Sheet open={!!data} onClose={onClose}>
       <div className="px-5 pt-1 pb-4 text-center">
-        <h2 className="display text-[20px] font-bold">{d?.title}</h2>
+        <h2 className="text-[21px] font-medium">{d?.title}</h2>
         {d?.text && <p className="mt-2 text-[15px] text-muted">{d.text}</p>}
         <button
           onClick={() => {
             d?.run()
             onClose()
           }}
-          className={`press mt-5 w-full rounded-2xl py-3.5 text-[17px] font-semibold ${d?.danger ? 'bg-bad text-white' : 'accent-grad'}`}
+          className={`press mt-5 w-full rounded-full py-3.5 text-[17px] font-semibold ${d?.danger ? 'bg-bad text-white' : 'accent-grad'}`}
         >
           {d?.confirm}
         </button>
@@ -313,8 +328,8 @@ export function ConfirmSheet({ data, onClose }: { data: ConfirmData | null; onCl
 export function EmptyState({ emoji, title, text, children }: { emoji: string; title: string; text?: string; children?: ReactNode }) {
   return (
     <div className="fade-up px-6 py-10 text-center">
-      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-card2/70 text-[30px]">{emoji}</div>
-      <p className="display mt-4 text-[18px] font-semibold">{title}</p>
+      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-chip text-[30px]">{emoji}</div>
+      <p className="mt-4 text-[18px] font-medium">{title}</p>
       {text && <p className="mx-auto mt-1 max-w-[260px] text-[14px] text-muted">{text}</p>}
       {children}
     </div>

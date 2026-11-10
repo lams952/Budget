@@ -19,8 +19,8 @@ export function Onboarding() {
   return (
     <div style={{ top: vv.top, height: vv.height }} className={`scroller pt-safe fixed inset-x-0 mx-auto flex max-w-md flex-col ${vv.keyboard ? 'pb-3' : 'pb-safe'} px-6`}>
       <div className="fade-up flex flex-1 flex-col justify-center py-6">
-        <p className="text-[13px] font-semibold tracking-wide text-accent uppercase">Bienvenue</p>
-        <h1 className={`display mt-1 ${vv.keyboard ? 'text-[26px]' : 'text-[32px]'} leading-tight font-bold`}>
+        <p className="text-[13px] font-semibold text-muted">Bienvenue</p>
+        <h1 className={`display mt-1 ${vv.keyboard ? 'text-[26px]' : 'text-[32px]'} leading-tight font-medium tracking-[-0.025em]`}>
           Combien veux-tu
           <br />
           dépenser par mois ?
@@ -34,7 +34,7 @@ export function Onboarding() {
             aria-label="Budget mensuel en euros"
             value={budget}
             onChange={(e) => setBudget(e.target.value.replace(/[^\d\s]/g, ''))}
-            className="num min-w-0 flex-1 bg-transparent text-[44px] font-bold outline-none placeholder:text-card2"
+            className="num min-w-0 flex-1 bg-transparent text-[46px] font-normal tracking-[-0.04em] outline-none placeholder:text-faint"
           />
           <span className="text-[18px] font-medium text-muted">€ / mois</span>
         </label>
@@ -44,7 +44,7 @@ export function Onboarding() {
               key={p}
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => setBudget(String(p))}
-              className={`press num shrink-0 rounded-full px-3.5 py-2 text-[14px] font-semibold ${value === p ? 'bg-accent text-white' : 'card'}`}
+              className={`press num shrink-0 rounded-full px-3.5 py-2 text-[14px] font-semibold ${value === p ? 'bg-solid text-on-solid' : 'card'}`}
             >
               {p.toLocaleString('fr-FR')} €
             </button>

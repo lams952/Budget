@@ -1,48 +1,64 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #f3f3f7;
-  --card: #ffffff;
-  --card2: #e9e9f0;
+  /* « Verre givré » : fond gris-lavande, cartes translucides, actions en noir */
+  --bg: #dfdfe6;
+  --bg-grad: radial-gradient(90% 55% at 0% 100%, rgba(222, 178, 206, 0.75), transparent 70%), radial-gradient(80% 45% at 100% 25%, rgba(181, 196, 222, 0.8), transparent 70%), linear-gradient(180deg, #e6e6eb, #d6d7e0);
+  --card: rgba(255, 255, 255, 0.46);
+  --card-line: rgba(255, 255, 255, 0.7);
+  --card2: rgba(20, 20, 50, 0.08);
+  --chip: rgba(255, 255, 255, 0.75);
   --ink: #0c0c12;
-  --muted: #7b7b88;
-  --line: rgba(15, 15, 40, 0.08);
+  --muted: #747482;
+  --faint: #9d9daa;
+  --line: rgba(20, 20, 50, 0.07);
   --good: #12a35f;
-  --warn: #e8840c;
+  --warn: #d9780a;
   --bad: #e5484d;
-  --accent: #5b5bf0;
-  --accent2: #8f6bff;
-  --sheet: #ffffff;
-  --field: #f0f0f5;
+  --accent: #5b5be6;
+  --accent2: #e86a9a;
+  --sheet: rgba(240, 240, 245, 0.86);
+  --field: rgba(255, 255, 255, 0.6);
   --raise: #ffffff;
-  --hero-from: #1b1b26;
-  --hero-to: #0d0d13;
-  --hero-line: rgba(255, 255, 255, 0);
-  --shadow-card: 0 1px 2px rgba(16, 16, 45, 0.04), 0 10px 28px -16px rgba(16, 16, 45, 0.14);
-  --shadow-hero: 0 24px 48px -24px rgba(20, 20, 60, 0.55);
+  --dock: rgba(236, 236, 242, 0.72);
+  --solid: #0b0b10;
+  --on-solid: #ffffff;
+  --solid2: #25252e;
+  --iri: linear-gradient(90deg, #ecb4d2, #cbc4ef 48%, #a8d8ee);
+  --iri-warn: linear-gradient(90deg, #f6cf9f, #f2b6c6 55%, #d9c3ef);
+  --iri-bad: linear-gradient(90deg, #f6a3a3, #f0b0cc 55%, #d6bff0);
+  --iri-ink: #3d3d4c;
+  --iri-rest: 0.4; /* partie du bandeau pas encore consommée */
+  --shadow-card: 0 10px 28px -18px rgba(40, 40, 90, 0.35);
   color-scheme: light dark;
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #000000;
-    --card: #141418;
-    --card2: #25252c;
-    --ink: #f5f5f7;
-    --muted: #8d8d99;
-    --line: rgba(255, 255, 255, 0.09);
-    --good: #34d17f;
+    --bg: #0c0d12;
+    --bg-grad: radial-gradient(90% 50% at 0% 100%, rgba(150, 80, 130, 0.28), transparent 70%), radial-gradient(80% 45% at 100% 15%, rgba(80, 100, 170, 0.3), transparent 70%), linear-gradient(180deg, #121319, #0a0a0f);
+    --card: rgba(255, 255, 255, 0.06);
+    --card-line: rgba(255, 255, 255, 0.08);
+    --card2: rgba(255, 255, 255, 0.1);
+    --chip: rgba(255, 255, 255, 0.09);
+    --ink: #f3f3f7;
+    --muted: #8f8f9e;
+    --faint: #66667a;
+    --line: rgba(255, 255, 255, 0.07);
+    --good: #3fd48a;
     --warn: #ffb02e;
     --bad: #ff6b65;
-    --accent: #8587ff;
-    --accent2: #b08cff;
-    --sheet: #17171c;
-    --field: #24242b;
+    --accent: #8d8cff;
+    --accent2: #f27aa8;
+    --sheet: rgba(28, 28, 36, 0.88);
+    --field: rgba(255, 255, 255, 0.08);
     --raise: #3b3b46;
-    --hero-from: #1c1c27;
-    --hero-to: #101016;
-    --hero-line: rgba(255, 255, 255, 0.08);
+    --dock: rgba(18, 18, 24, 0.72);
+    --solid: #f3f3f7;
+    --on-solid: #0b0b10;
+    --solid2: #dcdce4;
+    --iri-ink: #2a2a36;
+    --iri-rest: 0.72;
     --shadow-card: none;
-    --shadow-hero: none;
   }
 }
 
@@ -61,6 +77,10 @@
   --color-sheet: var(--sheet);
   --color-field: var(--field);
   --color-raise: var(--raise);
+  --color-faint: var(--faint);
+  --color-chip: var(--chip);
+  --color-solid: var(--solid);
+  --color-on-solid: var(--on-solid);
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
   --font-round: ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", system-ui, sans-serif;
 }
@@ -79,7 +99,7 @@
   }
   body {
     margin: 0;
-    background: var(--bg);
+    background: var(--bg-grad), var(--bg);
     color: var(--ink);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
@@ -138,22 +158,29 @@
   font-family: var(--font-round);
   letter-spacing: -0.025em;
 }
+/* verre : translucide + liseré clair. Pas de flou sur les cartes (le fond est un dégradé uni : inutile et coûteux en défilement). */
 .card {
   background: var(--card);
+  border: 1px solid var(--card-line);
   box-shadow: var(--shadow-card);
 }
-.hero {
-  background: radial-gradient(120% 90% at 85% -10%, color-mix(in srgb, var(--accent) 34%, transparent), transparent 60%), linear-gradient(160deg, var(--hero-from), var(--hero-to));
-  border: 1px solid var(--hero-line);
-  box-shadow: var(--shadow-hero);
-  color: #fff;
+/* vrai flou pour ce qui flotte au-dessus du contenu */
+.frost {
+  -webkit-backdrop-filter: blur(22px) saturate(1.4);
+  backdrop-filter: blur(22px) saturate(1.4);
 }
+.iri {
+  background: var(--iri);
+  color: var(--iri-ink);
+}
+/* action principale : pastille noire (blanche en sombre) */
 .accent-grad {
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  color: #fff;
+  background: var(--solid);
+  color: var(--on-solid);
 }
-.fab {
-  box-shadow: 0 10px 24px -8px color-mix(in srgb, var(--accent) 75%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+/* montants : la partie entière en grand, centimes et symbole en gris */
+.cents {
+  color: var(--faint);
 }
 .pt-safe {
   padding-top: max(env(safe-area-inset-top), 12px);

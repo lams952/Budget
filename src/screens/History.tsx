@@ -122,7 +122,7 @@ export function History() {
       {groups.map((g) => (
         <section key={g.date} className="mt-5">
           <div className="mb-2 flex items-baseline justify-between px-1 text-[13px] text-muted">
-            <span className="font-semibold tracking-wide uppercase">{dateLabel(g.date)}</span>
+            <span className="text-[14px] font-medium text-ink">{dateLabel(g.date)}</span>
             <span className={`num font-medium ${g.total > 0 ? 'text-good' : ''}`}>
               {g.total > 0 ? '+' : g.total < 0 ? '−' : ''}
               {money(Math.abs(g.total))}

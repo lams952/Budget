@@ -10,7 +10,7 @@ import { categorize, learnFromHistory, learnKey } from '../lib/smart/categorizer
 import { normalize } from '../lib/smart/normalize'
 import { parseQuickInput } from '../lib/smart/parser'
 import type { Transaction, TxType } from '../lib/types'
-import { Icon, Sheet } from './ui'
+import { Amount, Icon, Sheet } from './ui'
 
 interface Props {
   open: boolean
@@ -111,22 +111,22 @@ export function QuickAddSheet({ open, onClose }: Props) {
     close()
   }
 
-  const chip = 'press flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-[14px] font-semibold whitespace-nowrap'
+  const chip = 'press flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-[14px] font-medium whitespace-nowrap'
 
   return (
     <Sheet open={open} onClose={close}>
       <div className="px-5 pb-3">
         {/* aperçu */}
         <div className="text-center">
-          <div className={`num text-[52px] leading-none font-bold transition-colors ${valid ? (type === 'income' ? 'text-good' : '') : 'text-card2'}`}>
-            {valid ? `${type === 'income' ? '+' : ''}${money(parsed.amount!)}` : '0,00 €'}
+          <div className={`text-[54px] leading-none tracking-[-0.045em] transition-colors ${valid ? (type === 'income' ? 'text-good' : '') : 'opacity-30'}`}>
+            <Amount value={valid ? `${type === 'income' ? '+' : ''}${money(parsed.amount!)}` : '0,00 €'} />
           </div>
           <div className="mt-2 h-5 truncate text-[15px] text-muted">{parsed.label || (text ? '' : 'Tape un montant et une description')}</div>
         </div>
 
         {/* puces modifiables : une seule ligne, défilable */}
         <div className="no-scrollbar -mx-5 mt-4 flex gap-2 overflow-x-auto px-5">
-          <button onClick={() => setPicking((p) => !p)} className={`${chip} ${picking ? 'bg-accent text-white' : 'bg-field'}`} aria-expanded={picking}>
+          <button onClick={() => setPicking((p) => !p)} className={`${chip} ${picking ? 'bg-solid text-on-solid' : 'bg-field'}`} aria-expanded={picking}>
             <span>{cat.emoji}</span>
             {cat.label}
             {guess.confidence === 'learned' && !override.category && <Icon name="sparkle" size={13} className="text-accent" />}
@@ -163,7 +163,7 @@ export function QuickAddSheet({ open, onClose }: Props) {
                   setOverride((o) => ({ ...o, category: c.id }))
                   setPicking(false)
                 }}
-                className={`${chip} ${c.id === category ? 'bg-accent text-white' : 'border border-line'}`}
+                className={`${chip} ${c.id === category ? 'bg-solid text-on-solid' : 'bg-chip'}`}
               >
                 <span>{c.emoji}</span>
                 {c.label}
@@ -174,7 +174,7 @@ export function QuickAddSheet({ open, onClose }: Props) {
           suggestions.length > 0 && (
             <div className="no-scrollbar -mx-5 mt-2 flex gap-2 overflow-x-auto px-5">
               {suggestions.map((h) => (
-                <button key={h.key} onMouseDown={(e) => e.preventDefault()} onClick={() => applyHabit(h)} className={`${chip} border border-line !font-medium`}>
+                <button key={h.key} onMouseDown={(e) => e.preventDefault()} onClick={() => applyHabit(h)} className={`${chip} bg-chip !font-normal`}>
                   {h.label} <span className="num text-muted">{money(parsed.amount ?? h.amount)}</span>
                 </button>
               ))}
@@ -184,7 +184,7 @@ export function QuickAddSheet({ open, onClose }: Props) {
 
         {/* saisie */}
         <form
-          className="mt-4 flex items-center gap-2"
+          className="mt-4 flex items-center gap-2 rounded-full bg-solid p-1.5 pl-5 text-on-solid focus-within:ring-2 focus-within:ring-accent/50"
           onSubmit={(e) => {
             e.preventDefault()
             save()
@@ -201,14 +201,14 @@ export function QuickAddSheet({ open, onClose }: Props) {
             autoCapitalize="off"
             spellCheck={false}
             aria-label="Montant et description"
-            className="min-w-0 flex-1 rounded-full bg-field px-5 py-3.5 text-[17px] outline-none transition-shadow placeholder:text-muted focus:ring-2 focus:ring-accent/40"
+            className="min-w-0 flex-1 bg-transparent py-2.5 text-[17px] outline-none placeholder:text-on-solid/45"
           />
           <button
             type="submit"
             disabled={!valid}
             onMouseDown={(e) => e.preventDefault()}
             aria-label="Ajouter"
-            className="press accent-grad flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-full transition-opacity disabled:opacity-25"
+            className="press flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-full bg-on-solid text-solid transition-opacity disabled:opacity-20"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 19V5M5 12l7-7 7 7" />

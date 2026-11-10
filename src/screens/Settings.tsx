@@ -112,7 +112,7 @@ export function Settings({ email }: { email?: string | null }) {
             placeholder="0"
             enterKeyHint="done"
             aria-label="Budget mensuel en euros"
-            className="num min-w-0 flex-1 bg-transparent text-[34px] font-bold outline-none placeholder:text-card2"
+            className="num min-w-0 flex-1 bg-transparent text-[36px] font-normal tracking-[-0.03em] outline-none placeholder:text-faint"
           />
           <span className="text-[16px] font-medium text-muted">€ / mois</span>
         </label>
@@ -200,7 +200,7 @@ export function Settings({ email }: { email?: string | null }) {
       {store.mode === 'cloud' ? (
         <div className="card divide-y divide-line overflow-hidden rounded-3xl text-[16px]">
           <div className="flex items-center gap-3 px-4 py-3.5">
-            <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${!online ? 'bg-warn/15 text-warn' : 'bg-good/15 text-good'}`}>
+            <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${!online ? 'bg-warn/15 text-warn' : 'bg-good/15 text-good'}`}>
               <Icon name={online ? 'cloud' : 'cloudOff'} size={18} />
             </span>
             <div className="min-w-0">
@@ -246,7 +246,7 @@ export function Settings({ email }: { email?: string | null }) {
 function Row({ children, onClick, danger, disabled, icon, hint }: { children: React.ReactNode; onClick: () => void; danger?: boolean; disabled?: boolean; icon: Parameters<typeof Icon>[0]['name']; hint?: string }) {
   return (
     <button onClick={onClick} disabled={disabled} className={`press flex w-full items-center gap-3 px-4 py-3.5 text-left font-medium disabled:opacity-40 ${danger ? 'text-bad' : ''}`}>
-      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${danger ? 'bg-bad/10' : 'bg-field text-muted'}`}>
+      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${danger ? 'bg-bad/10' : 'bg-chip text-ink'}`}>
         <Icon name={icon} size={18} />
       </span>
       <span className="flex-1">{children}</span>

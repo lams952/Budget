@@ -8,7 +8,7 @@ export const TransactionRow = memo(function TransactionRow({ t, subtitle }: { t:
   const cat = getCategory(t.category)
   return (
     <div className="flex items-center gap-3 px-4 py-3">
-      <CategoryIcon id={t.category} />
+      <CategoryIcon id={t.category} size={42} />
       <div className="min-w-0 flex-1">
         <div className="truncate text-[16px] font-medium">{t.label || cat.label}</div>
         <div className="truncate text-[13px] text-muted">
@@ -16,7 +16,7 @@ export const TransactionRow = memo(function TransactionRow({ t, subtitle }: { t:
           {t.recurringId ? ' · charge fixe' : ''}
         </div>
       </div>
-      <div className={`num text-[16px] font-semibold ${t.type === 'income' ? 'text-good' : ''}`}>
+      <div className={`num text-[16px] font-medium ${t.type === 'income' ? 'text-good' : ''}`}>
         {t.type === 'income' ? '+' : '−'}
         {money(t.amount)}
       </div>
@@ -40,7 +40,9 @@ export function SwipeRow({ children, onTap, onDelete }: { children: React.ReactN
       content.current.style.transform = dx ? `translateX(${dx}px)` : ''
     }
     if (action.current) {
-      action.current.style.width = `${Math.max(-dx, 0) + 1}px`
+      action.current.style.width = dx < 0 ? `${-dx + 1}px` : '0px'
+      // les lignes sont translucides : le bouton doit être vraiment caché quand la ligne est fermée
+      action.current.style.visibility = dx < 0 ? 'visible' : 'hidden'
       action.current.tabIndex = dx === 0 ? -1 : 0
     }
   }
@@ -51,14 +53,14 @@ export function SwipeRow({ children, onTap, onDelete }: { children: React.ReactN
         ref={action}
         onClick={onDelete}
         className="absolute inset-y-0 right-0 flex items-center justify-end overflow-hidden bg-bad pr-5 text-[15px] font-semibold whitespace-nowrap text-white"
-        style={{ width: 1 }}
+        style={{ width: 0, visibility: 'hidden' }}
         tabIndex={-1}
       >
         Supprimer
       </button>
       <div
         ref={content}
-        className="relative cursor-pointer bg-card will-change-transform"
+        className="relative cursor-pointer will-change-transform"
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {

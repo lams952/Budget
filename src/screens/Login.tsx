@@ -21,7 +21,7 @@ const appUrl = () => `${location.origin}${import.meta.env.BASE_URL}`
 
 function Logo() {
   return (
-    <div className="accent-grad fab display mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-[24px] text-[40px] font-bold">€</div>
+    <div className="accent-grad display mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full text-[38px] font-light">€</div>
   )
 }
 
@@ -103,7 +103,7 @@ export function Login() {
     <div style={{ top: vv.top, height: vv.height }} className={`scroller pt-safe fixed inset-x-0 mx-auto flex max-w-md flex-col ${vv.keyboard ? 'pb-3' : 'pb-safe'} justify-center px-6`}>
       <div className="fade-up">
         {!vv.keyboard && <Logo />}
-        <h1 className="display text-center text-[34px] font-bold">Budget</h1>
+        <h1 className="text-center text-[36px] font-medium tracking-[-0.025em]">Budget</h1>
         <p className="mt-2 text-center text-[17px] text-muted">{mode === 'login' ? 'Content de te revoir.' : 'Crée ton compte gratuit pour retrouver tes données sur tous tes appareils.'}</p>
 
         <form onSubmit={submit} className="mt-8 space-y-3">
@@ -172,7 +172,7 @@ export function NewPassword({ onDone }: { onDone: () => void }) {
     <div style={{ top: vv.top, height: vv.height }} className={`scroller pt-safe fixed inset-x-0 mx-auto flex max-w-md flex-col ${vv.keyboard ? 'pb-3' : 'pb-safe'} justify-center px-6`}>
       <div className="fade-up">
         {!vv.keyboard && <Logo />}
-        <h1 className="display text-center text-[28px] font-bold">Nouveau mot de passe</h1>
+        <h1 className="text-center text-[28px] font-medium tracking-[-0.02em]">Nouveau mot de passe</h1>
         <p className="mt-2 text-center text-[17px] text-muted">Choisis le mot de passe que tu utiliseras désormais.</p>
         <form onSubmit={submit} className="mt-8 space-y-3">
           <PasswordInput value={password} onChange={setPassword} autoComplete="new-password" placeholder="Nouveau mot de passe (6 caractères min.)" />
