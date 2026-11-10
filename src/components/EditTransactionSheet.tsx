@@ -6,11 +6,12 @@ import { categoriesFor, getCategory } from '../lib/categories'
 import { learnKey } from '../lib/smart/categorizer'
 import type { Transaction, TxType } from '../lib/types'
 import { CategoryPicker } from './CategoryPicker'
-import { Field, Icon, Segmented, Sheet, inputClass, parseAmount } from './ui'
+import { Field, Icon, Segmented, Sheet, inputClass, parseAmount, useVisualViewport } from './ui'
 
 export function EditTransactionSheet({ tx, onClose }: { tx: Transaction | null; onClose: () => void }) {
   const store = useStore()
   const { toast } = useUI()
+  const { keyboard } = useVisualViewport()
   const [amount, setAmount] = useState('')
   const [label, setLabel] = useState('')
   const [type, setType] = useState<TxType>('expense')
@@ -48,7 +49,7 @@ export function EditTransactionSheet({ tx, onClose }: { tx: Transaction | null; 
         </button>
       }
     >
-      <div className="space-y-5 px-5 pt-3 pb-6">
+      <div className="space-y-3 px-5 pt-2 pb-4">
         <Segmented
           value={type}
           onChange={(t) => {
@@ -60,19 +61,27 @@ export function EditTransactionSheet({ tx, onClose }: { tx: Transaction | null; 
             { value: 'income', label: 'Revenu' },
           ]}
         />
-        <Field label="Montant">
-          <input inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} className={`${inputClass} num text-[24px] font-bold`} aria-invalid={!(value > 0)} />
-        </Field>
-        <Field label="Description">
-          <input value={label} onChange={(e) => setLabel(e.target.value)} className={inputClass} />
-        </Field>
-        <Field label="Date">
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={`${inputClass} appearance-none`} />
-        </Field>
-        <div>
-          <span className="mb-1.5 block px-1 text-[13px] text-muted">Catégorie</span>
-          <CategoryPicker type={type} value={category} onChange={setCategory} />
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Montant">
+            <input inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} className={`${inputClass} num !py-3 text-[22px] font-bold`} aria-invalid={!(value > 0)} />
+          </Field>
+          <Field label="Date">
+            <input type="date" value={date} max={toKey(new Date())} onChange={(e) => setDate(e.target.value)} className={`${inputClass} !min-h-0 !py-3 appearance-none`} />
+          </Field>
         </div>
+        <Field label="Description">
+          <input value={label} onChange={(e) => setLabel(e.target.value)} className={`${inputClass} !py-3`} />
+        </Field>
+        {keyboard ? (
+          <p className="px-1 text-[13px] text-muted">
+            Catégorie : <b className="text-ink">{getCategory(category).emoji} {getCategory(category).label}</b>
+          </p>
+        ) : (
+          <div>
+            <span className="mb-1.5 block px-1 text-[13px] font-medium text-muted">Catégorie</span>
+            <CategoryPicker type={type} value={category} onChange={setCategory} />
+          </div>
+        )}
         <div className="grid grid-cols-2 gap-2">
           <button
             onClick={() => {
@@ -82,7 +91,7 @@ export function EditTransactionSheet({ tx, onClose }: { tx: Transaction | null; 
               toast("Dupliquée à aujourd'hui")
               onClose()
             }}
-            className="press flex items-center justify-center gap-2 rounded-2xl bg-field py-3.5 text-[16px] font-semibold"
+            className="press flex items-center justify-center gap-2 rounded-2xl bg-field py-3 text-[16px] font-semibold"
           >
             <Icon name="copy" size={18} />
             Dupliquer
@@ -94,7 +103,7 @@ export function EditTransactionSheet({ tx, onClose }: { tx: Transaction | null; 
               toast('Opération supprimée', { label: 'Annuler', run: () => store.addTransactions([tx]) })
               onClose()
             }}
-            className="press flex items-center justify-center gap-2 rounded-2xl bg-bad/10 py-3.5 text-[16px] font-semibold text-bad"
+            className="press flex items-center justify-center gap-2 rounded-2xl bg-bad/10 py-3 text-[16px] font-semibold text-bad"
           >
             <Icon name="trash" size={18} />
             Supprimer

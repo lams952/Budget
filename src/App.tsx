@@ -153,9 +153,9 @@ function Shell({ email }: { email?: string | null }) {
               ref={(el) => {
                 scrollers.current[t] = el
               }}
-              className={`scroller absolute inset-0 ${tab === t ? '' : 'hidden'}`}
+              className={`scroller absolute inset-0 ${tab === t ? 'fade-up' : 'hidden'}`}
             >
-              <div className="pt-safe fade-up mx-auto max-w-lg px-4 pb-10">{screen(t)}</div>
+              <div className="pt-safe mx-auto max-w-lg px-4 pb-10">{screen(t)}</div>
             </div>
           ))}
         </div>

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { getCategory } from '../lib/categories'
 
 /**
@@ -30,11 +31,12 @@ export function useVisualViewport() {
   return state
 }
 
-/** Feuille modale façon iOS : glisser vers le bas pour fermer, toujours au-dessus du clavier. */
+/** Feuille modale façon iOS : jamais défilable, glisser vers le bas pour fermer, toujours au-dessus du clavier. */
 export function Sheet({ open, onClose, title, children, right }: { open: boolean; onClose: () => void; title?: string; children: ReactNode; right?: ReactNode }) {
   const vv = useVisualViewport()
-  const [drag, setDrag] = useState(0)
-  const start = useRef<{ y: number; t: number } | null>(null)
+  const panel = useRef<HTMLDivElement>(null)
+  const dim = useRef<HTMLDivElement>(null)
+  const g = useRef<{ x: number; y: number; t: number; dir: 'v' | 'h' | null; dy: number } | null>(null)
 
   useEffect(() => {
     if (!open) return
@@ -43,24 +45,46 @@ export function Sheet({ open, onClose, title, children, right }: { open: boolean
     return () => window.removeEventListener('keydown', onKey)
   }, [open, onClose])
 
-  const dragHandlers = {
+  // le geste modifie directement le DOM : aucun re-rendu React pendant le glissement
+  const move = (dy: number, animate: boolean) => {
+    const el = panel.current
+    if (!el) return
+    el.style.transition = animate ? '' : 'none'
+    el.style.transform = dy ? `translateY(${dy}px)` : ''
+    if (dim.current) dim.current.style.opacity = dy ? String(Math.max(0.2, 1 - dy / 400)) : ''
+  }
+
+  const touch = {
     onTouchStart: (e: React.TouchEvent) => {
-      start.current = { y: e.touches[0].clientY, t: Date.now() }
+      g.current = { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now(), dir: null, dy: 0 }
     },
     onTouchMove: (e: React.TouchEvent) => {
-      if (start.current) setDrag(Math.max(0, e.touches[0].clientY - start.current.y))
+      const s = g.current
+      if (!s) return
+      const dx = e.touches[0].clientX - s.x
+      const dy = e.touches[0].clientY - s.y
+      if (!s.dir) {
+        if (Math.abs(dy) > 8 && Math.abs(dy) > Math.abs(dx)) s.dir = 'v'
+        else if (Math.abs(dx) > 8) s.dir = 'h'
+      }
+      if (s.dir === 'v') {
+        s.dy = Math.max(0, dy)
+        move(s.dy, false)
+      }
     },
     onTouchEnd: () => {
-      const s = start.current
-      start.current = null
-      if (!s) return
-      const fast = drag / Math.max(Date.now() - s.t, 1) > 0.5
-      if (drag > 90 || (fast && drag > 20)) onClose()
-      setDrag(0)
+      const s = g.current
+      g.current = null
+      if (!s || s.dir !== 'v') return
+      const fast = s.dy / Math.max(Date.now() - s.t, 1) > 0.5
+      const close = s.dy > 90 || (fast && s.dy > 20)
+      move(close ? s.dy : 0, true)
+      if (close) onClose()
     },
   }
 
-  return (
+  // portail : la feuille n'est jamais prisonnière du contexte d'empilement d'un écran
+  return createPortal(
     <div
       className={`fixed inset-x-0 z-40 ${open ? '' : 'pointer-events-none'}`}
       style={{ top: vv.top, height: vv.height }}
@@ -70,25 +94,28 @@ export function Sheet({ open, onClose, title, children, right }: { open: boolean
       {/* iOS n'envoie pas toujours de « click » sur un simple div quand le clavier est ouvert :
           on ferme dès le relâchement du doigt, et preventDefault évite un clic fantôme sur l'écran dessous. */}
       <div
+        ref={dim}
         onClick={onClose}
         onTouchEnd={(e) => {
           e.preventDefault()
           onClose()
         }}
-        className={`absolute inset-0 cursor-pointer touch-none bg-black/45 backdrop-blur-[2px] transition-opacity duration-300 ${open ? 'opacity-100' : 'opacity-0'}`}
-        style={{ opacity: open ? Math.max(0.2, 1 - drag / 400) : 0 }}
+        className={`absolute inset-0 cursor-pointer touch-none bg-black/45 transition-opacity duration-300 ${open ? 'opacity-100' : 'opacity-0'}`}
       />
       <div
+        ref={panel}
         role="dialog"
         aria-modal="true"
+        {...touch}
         style={{
           maxHeight: 'calc(100% - env(safe-area-inset-top) - 12px)',
-          transform: open ? `translateY(${drag}px)` : 'translateY(105%)',
-          transition: drag ? 'none' : 'transform 0.38s cubic-bezier(0.32, 0.72, 0, 1)',
+          transform: open ? 'translateY(0)' : 'translateY(105%)',
+          transition: 'transform 0.38s cubic-bezier(0.32, 0.72, 0, 1)',
+          touchAction: 'pan-x', // pas de défilement vertical : le geste vertical sert uniquement à fermer
         }}
-        className={`absolute inset-x-0 bottom-0 mx-auto flex max-w-lg flex-col rounded-t-[30px] bg-sheet shadow-[0_-12px_40px_-12px_rgba(0,0,0,0.35)] will-change-transform ${vv.keyboard ? 'pb-2' : 'pb-safe'}`}
+        className={`absolute inset-x-0 bottom-0 mx-auto flex max-w-lg flex-col overflow-hidden rounded-t-[30px] bg-sheet shadow-[0_-12px_40px_-12px_rgba(0,0,0,0.35)] will-change-transform ${vv.keyboard ? 'pb-2' : 'pb-safe'}`}
       >
-        <div {...dragHandlers} className="shrink-0 touch-none">
+        <div className="shrink-0">
           <div className="mx-auto mt-2.5 h-[5px] w-9 rounded-full bg-card2" />
           {title !== undefined && (
             <div className="flex items-center justify-between px-5 pt-3 pb-2">
@@ -101,9 +128,10 @@ export function Sheet({ open, onClose, title, children, right }: { open: boolean
           )}
           {title === undefined && <div className="h-3" />}
         </div>
-        <div className="scroller min-h-0">{children}</div>
+        <div className="min-h-0 overflow-hidden">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
 

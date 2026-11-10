@@ -5,11 +5,12 @@ import { monthKey } from '../lib/dates'
 import { categorize } from '../lib/smart/categorizer'
 import type { Recurring, TxType } from '../lib/types'
 import { CategoryPicker } from './CategoryPicker'
-import { Field, Segmented, Sheet, inputClass, parseAmount } from './ui'
+import { Field, Segmented, Sheet, inputClass, parseAmount, useVisualViewport } from './ui'
 
 /** `editing` : null = fermé, 'new' = création, sinon la récurrente à modifier. */
 export function RecurringSheet({ editing, onClose }: { editing: Recurring | 'new' | null; onClose: () => void }) {
   const store = useStore()
+  const { keyboard } = useVisualViewport()
   const [label, setLabel] = useState('')
   const [amount, setAmount] = useState('')
   const [day, setDay] = useState('1')
@@ -67,7 +68,7 @@ export function RecurringSheet({ editing, onClose }: { editing: Recurring | 'new
         </button>
       }
     >
-      <div className="space-y-5 px-5 pt-3 pb-6">
+      <div className="space-y-3 px-5 pt-2 pb-4">
         <Segmented
           value={type}
           onChange={(t) => {
@@ -87,19 +88,24 @@ export function RecurringSheet({ editing, onClose }: { editing: Recurring | 'new
               setLabel(e.target.value)
               if (!touchedCat) setCategory(categorize(e.target.value, type).category)
             }}
-            className={inputClass}
+            className={`${inputClass} !py-3`}
           />
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Montant (€)">
-            <input inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} className={`${inputClass} tabular`} />
+            <input inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} className={`${inputClass} tabular !py-3`} />
           </Field>
           <Field label="Jour du mois">
-            <input inputMode="numeric" value={day} onChange={(e) => setDay(e.target.value)} className={`${inputClass} tabular`} />
+            <input inputMode="numeric" value={day} onChange={(e) => setDay(e.target.value)} className={`${inputClass} tabular !py-3`} />
           </Field>
         </div>
+        {keyboard ? (
+          <p className="px-1 text-[13px] text-muted">
+            Catégorie : <b className="text-ink">{getCategory(category).emoji} {getCategory(category).label}</b>
+          </p>
+        ) : (
         <div>
-          <span className="mb-1.5 block px-1 text-[13px] text-muted">Catégorie</span>
+          <span className="mb-1.5 block px-1 text-[13px] font-medium text-muted">Catégorie</span>
           <CategoryPicker
             type={type}
             value={category}
@@ -109,6 +115,7 @@ export function RecurringSheet({ editing, onClose }: { editing: Recurring | 'new
             }}
           />
         </div>
+        )}
         <p className="px-1 text-[13px] text-muted">
           {d > 28 && d <= 31 ? `Les mois plus courts, elle tombera le dernier jour du mois. ` : ''}
           {type === 'income' ? 'Ce revenu sera ajouté' : 'Cette charge sera ajoutée'} automatiquement chaque mois à cette date.
@@ -119,7 +126,7 @@ export function RecurringSheet({ editing, onClose }: { editing: Recurring | 'new
               store.deleteRecurring(editing.id)
               onClose()
             }}
-            className="press w-full rounded-2xl bg-bad/10 py-3.5 text-[16px] font-semibold text-bad"
+            className="press w-full rounded-2xl bg-bad/10 py-3 text-[16px] font-semibold text-bad"
           >
             Supprimer cette échéance
           </button>

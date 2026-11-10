@@ -26,7 +26,7 @@ export function TabBar({ tab, setTab, onAdd }: { tab: Tab; setTab: (t: Tab) => v
     )
   }
   return (
-    <nav className="pb-safe relative z-30 shrink-0 border-t border-line bg-card/85 backdrop-blur-2xl">
+    <nav className="pb-safe relative z-30 shrink-0 border-t border-line bg-card/90 backdrop-blur-lg">
       <div className="mx-auto flex max-w-lg items-start">
         {item('home')}
         {item('history')}
